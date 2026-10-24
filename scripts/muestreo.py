@@ -48,7 +48,7 @@ print()
 #         Pista: .head(20) — igual que la demo de clase.
 #         Después de correrlo, mira la composición por ciudad que imprime el
 #         reporte: ¿es un corte al azar? ¿alguna ciudad falta por completo?
-muestra_conv = None
+muestra_conv = poblacion.head(20)
 
 # ---------------------------------------------------------------------------
 # 3. Muestra aleatoria simple: el sorteo de 20
@@ -56,9 +56,16 @@ muestra_conv = None
 # TODO 2: sortea 20 clientes con la misma probabilidad para todos (20/400 = 5 %).
 #         Pista: .sample(20, random_state=1). Con random_state el resultado es
 #         reproducible; sin él cambia en cada ejecución.
+muestra_aas = poblacion.sample(n=20, random_state=1)
 # TODO 3: repite el sorteo con las semillas 2 a 5 y anota las 5 medias en el
 #         informe: la variabilidad de la estimación es parte de la lección.
-muestra_aas = None
+print("\nMedias del muestreo aleatorio simple para semillas 1 a 5:")
+
+for semilla in range(1, 6):
+    muestra_semilla = poblacion.sample(n=20, random_state=semilla)
+    media_semilla = muestra_semilla["ingresos_mensuales"].mean()
+
+    print(f"Semilla {semilla}: {media_semilla:.2f} USD", "\n")
 
 # ---------------------------------------------------------------------------
 # 4. Muestra estratificada: 5 % dentro de cada ciudad
@@ -68,7 +75,11 @@ muestra_aas = None
 #         Cuenca (20 en total).
 #         Pista: .groupby("ciudad") y .sample(frac=0.05, random_state=1).
 #         ¿Qué garantiza este diseño que el sorteo simple no garantiza?
-muestra_est = None
+muestra_est = (
+    poblacion
+    .groupby("ciudad", group_keys=False)
+    .sample(frac=0.05, random_state=1)
+)
 
 # ---------------------------------------------------------------------------
 # 5. Comparación final
@@ -80,13 +91,43 @@ print()
 
 if muestra_conv is not None and muestra_aas is not None and muestra_est is not None:
     resumen = pd.DataFrame([
-        {"diseño": "Conveniencia (head)", "n": len(muestra_conv),
-         "media estimada": round(muestra_conv["ingresos_mensuales"].mean(), 2)},
-        {"diseño": "Aleatorio simple (sample)", "n": len(muestra_aas),
-         "media estimada": round(muestra_aas["ingresos_mensuales"].mean(), 2)},
-        {"diseño": "Estratificado (groupby + frac)", "n": len(muestra_est),
-         "media estimada": round(muestra_est["ingresos_mensuales"].mean(), 2)},
-    ])
+    {
+        "diseño": "Conveniencia (head)",
+        "n": len(muestra_conv),
+        "media estimada": round(
+            muestra_conv["ingresos_mensuales"].mean(), 2
+        ),
+        "composición por ciudad":
+            muestra_conv["ciudad"].value_counts().to_dict(),
+        "diferencia vs. parámetro": round(
+            muestra_conv["ingresos_mensuales"].mean() - parametro, 2
+        ),
+    },
+    {
+        "diseño": "Aleatorio simple (sample)",
+        "n": len(muestra_aas),
+        "media estimada": round(
+            muestra_aas["ingresos_mensuales"].mean(), 2
+        ),
+        "composición por ciudad":
+            muestra_aas["ciudad"].value_counts().to_dict(),
+        "diferencia vs. parámetro": round(
+            muestra_aas["ingresos_mensuales"].mean() - parametro, 2
+        ),
+    },
+    {
+        "diseño": "Estratificado (groupby + frac)",
+        "n": len(muestra_est),
+        "media estimada": round(
+            muestra_est["ingresos_mensuales"].mean(), 2
+        ),
+        "composición por ciudad":
+            muestra_est["ciudad"].value_counts().to_dict(),
+        "diferencia vs. parámetro": round(
+            muestra_est["ingresos_mensuales"].mean() - parametro, 2
+        ),
+    },
+])
     print(f"Parámetro poblacional: {parametro:.2f} USD")
     print(resumen.to_string(index=False))
     print()
