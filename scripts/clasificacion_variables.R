@@ -17,6 +17,7 @@ clientes <- read.csv("data/clientes.csv", stringsAsFactors = FALSE)
 # ---------------------------------------------------------------------------
 cat(sprintf("Dimensiones: %d filas × %d columnas\n", nrow(clientes), ncol(clientes)))
 print(clientes)
+print("**************")
 
 # ---------------------------------------------------------------------------
 # 2. Tipos inferidos (str) — la pista que da el lenguaje
@@ -36,6 +37,20 @@ str(clientes)
 # for (columna in names(clientes)) {
 #   ...
 # }
+for (columna in names(clientes)) {
+  valores <- unique(clientes[[columna]])
+
+  cat(
+    columna, ": ",
+    length(valores),
+    " valores únicos -> ",
+    paste(valores, collapse = ", "),
+    "\n",
+    sep = ""
+  )
+}
+
+print("**************")
 
 # ---------------------------------------------------------------------------
 # 4. Declarar el orden de las variables ordinales
@@ -46,25 +61,79 @@ str(clientes)
 #
 # TODO 3: convierte nivel_educacion con factor(..., levels = c(...), ordered = TRUE).
 #         Comprueba con min(): debe devolver "Primaria".
+orden_educacion <- c(
+  "Primaria",
+  "Secundaria",
+  "Universidad",
+  "Posgrado"
+)
+
+clientes$nivel_educacion <- factor(
+  clientes$nivel_educacion,
+  levels = orden_educacion,
+  ordered = TRUE
+)
+
+cat("\nOrden de nivel_educacion:\n")
+print(levels(clientes$nivel_educacion))
+cat("Mínimo:", as.character(min(clientes$nivel_educacion)), "\n")
+cat("Máximo:", as.character(max(clientes$nivel_educacion)), "\n")
+
+print("**************")
 # TODO 4: haz lo mismo con satisfaccion (escala 1–5 como etiquetas ordenadas).
 #         Prueba extra: ¿qué pasa si en levels escribes "Postgrado" (con t) para
 #         nivel_educacion? Cuenta los faltantes con sum(is.na(...)) — la trampa
 #         del typo es silenciosa.
+orden_satisfaccion <- c(1, 2, 3, 4, 5)
 
+clientes$satisfaccion <- factor(
+  clientes$satisfaccion,
+  levels = orden_satisfaccion,
+  ordered = TRUE
+)
+
+cat("\nOrden de satisfaccion:\n")
+print(levels(clientes$satisfaccion))
+cat("Mínimo:", as.character(min(clientes$satisfaccion)), "\n")
+cat("Máximo:", as.character(max(clientes$satisfaccion)), "\n")
+
+print("**************")
+
+# Prueba extra: error intencional al escribir "Postgrado"
+nivel_educacion_error <- factor(
+  read.csv(
+    "data/clientes.csv",
+    stringsAsFactors = FALSE
+  )$nivel_educacion,
+  levels = c(
+    "Primaria",
+    "Secundaria",
+    "Universidad",
+    "Postgrado"
+  ),
+  ordered = TRUE
+)
+
+cat("\nPrueba con 'Postgrado' mal escrito:\n")
+cat(
+  "Valores faltantes:",
+  sum(is.na(nivel_educacion_error)),
+  "\n"
+)
 # ---------------------------------------------------------------------------
 # 5. Resumen de la clasificación (para el informe)
 # ---------------------------------------------------------------------------
 # TODO 5: completa el resumen con el tipo de cada variable (el criterio que
 #         justifica cada clasificación va en el informe).
 clasificacion <- c(
-  cliente_id         = "…",
-  edad               = "…",
-  numero_hijos       = "…",
-  genero             = "…",
-  nivel_educacion    = "…",
-  ciudad             = "…",
-  ingresos_mensuales = "…",
-  satisfaccion       = "…"
+  cliente_id         = "Categórica nominal",
+  edad               = "Numérica continua",
+  numero_hijos       = "Numérica discreta",
+  genero             = "Categórica nominal",
+  nivel_educacion    = "Categórica ordinal",
+  ciudad             = "Categórica nominal",
+  ingresos_mensuales = "Numérica continua",
+  satisfaccion       = "Categórica ordinal"
 )
 cat("\nResumen de la clasificación (para el informe):\n")
 for (variable in names(clasificacion)) {
